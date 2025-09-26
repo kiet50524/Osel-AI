@@ -1,10 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Osel AI</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; background: #f8f9fb; }
+    h1 { text-align: center; }
+    #chat { border: 1px solid #ddd; border-radius: 10px; padding: 10px; background: #fff; min-height: 200px; }
+    .user { color: blue; margin: 8px 0; }
+    .osel { color: green; margin: 8px 0; }
+    #inputBar { display: flex; margin-top: 10px; }
+    input[type='text'] { flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; }
+    button { margin-left: 8px; padding: 8px 16px; border: none; background: #008cba; color: #fff; border-radius: 4px; cursor: pointer; }
+  </style>
 </head>
 <body>
-  <h1>Welcome to Osel AI!</h1>
-  <p>Hi, I’m Osel—a helpful and friendly AI assistant. Ask me anything!</p>
+  <h1>Osel AI Chat</h1>
+  <div id="chat">
+    <div class="osel">Hello! I'm Osel, your friendly AI assistant. How can I help you today?</div>
+  </div>
+  <div id="inputBar">
+    <input id="userInput" type="text" placeholder="Type your message..." autocomplete="off">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const chat = document.getElementById('chat');
+      const userMsg = input.value.trim();
+      if (!userMsg) return;
+
+      // Show user message
+      chat.innerHTML += `<div class="user"><strong>You:</strong> ${userMsg}</div>`;
+
+      // Osel's sample response (static, since we're not yet connecting to OpenAI)
+      setTimeout(() => {
+        chat.innerHTML += `<div class="osel"><strong>Osel:</strong> That's interesting! I'm here to help. 😊</div>`;
+        chat.scrollTop = chat.scrollHeight;
+      }, 700);
+
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
 </body>
 </html>
