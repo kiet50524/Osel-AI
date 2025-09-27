@@ -137,7 +137,7 @@
         async function sendToBackendAndReceiveResponse(message) {
             
             // This URL MUST match the address where your Flask server (app.py) is running.
-            const serverEndpoint = 'http://127.0.0.1:5000/chat'; 
+            const serverEndpoint = 'https://Kiet50524.pythonanywhere.com/chat'; 
 
             try {
                 const response = await fetch(serverEndpoint, {
@@ -160,7 +160,7 @@
 
             } catch (error) {
                 console.error('Error contacting server:', error);
-                return `Sorry, I can't connect to the AI server right now. Error: ${error.message}. Make sure 'app.py' is running and you entered your API key.`;
+                return `Sorry, I can't connect to the AI server right now. Error: ${error.message}. Make sure 'Osel.py' is running and you entered your API key.`;
             }
         }
         // ---------------------------------------------
