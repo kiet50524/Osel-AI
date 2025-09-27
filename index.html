@@ -58,6 +58,17 @@
             align-self: flex-start;
             border-bottom-left-radius: 2px;
         }
+        
+        /* Spinner for loading state */
+        .loading::after {
+            content: '...';
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0%   { content: '.'; }
+            33%  { content: '..'; }
+            66%  { content: '...'; }
+        }
 
         #input-area {
             border-top: 1px solid #ddd;
@@ -87,8 +98,13 @@
             transition: background-color 0.2s;
         }
 
-        #send-button:hover {
+        #send-button:hover:not(:disabled) {
             background-color: #0056b3;
+        }
+        
+        #send-button:disabled {
+            background-color: #a0c3e6; /* Greyed out color */
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -99,62 +115,111 @@
             <div class="message ai-message">
                 Hello! I'm your new AI assistant. Type a message below to start chatting!
             </div>
-            <div class="message user-message">
-                What is the secret to happiness?
-            </div>
-            <div class="message ai-message">
-                That's a deep question! While I can't feel emotions, many studies suggest happiness comes from strong social connections and a sense of purpose.
-            </div>
         </div>
 
         <div id="input-area">
-            <input type="text" id="user-input" placeholder="Type your message...">
-            <button id="send-button">Send</button>
+            <input type="text" id="user-input" placeholder="Type your message..." disabled>
+            <button id="send-button" disabled>Send</button>
+        </div>
+        
+        <div style="text-align: center; padding: 10px; font-size: 12px; color: #888;">
+            (NOTE: You need to set up a Python server to handle the API key and enable chat.)
         </div>
     </div>
 
     <script>
-        // This is simple JavaScript to handle sending and displaying messages
-        // The actual API connection needs a server (see section below)
-
         const chatMessages = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
         const sendButton = document.getElementById('send-button');
+        let isSending = false; // Flag to prevent multiple submissions
 
-        function sendMessage() {
-            const userText = userInput.value.trim();
-            if (userText === "") return; // Don't send empty messages
+        // --- Core Function: Connects to the server ---
+        async function sendToBackendAndReceiveResponse(message) {
+            // *** NOTE: This is where the API call logic is implemented on the FRONT-END ***
+            // *** It is calling your Python server, NOT the OpenAI API directly! ***
+            
+            const serverEndpoint = 'http://127.0.0.1:5000/chat'; // <-- Change this to your server's public URL later
 
-            // 1. Display the user's message
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.classList.add('message', 'user-message');
-            userMessageDiv.textContent = userText;
-            chatMessages.appendChild(userMessageDiv);
+            try {
+                const response = await fetch(serverEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    // Send the user message to your server
+                    body: JSON.stringify({ message: message }) 
+                });
 
-            // Scroll to the bottom
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
 
-            // Clear the input
-            userInput.value = '';
+                const data = await response.json();
+                
+                // Your Python server should return a JSON object like: {"response": "AI's answer"}
+                return data.response; 
 
-            // 2. FOR DEMONSTRATION ONLY: Display a dummy AI response
-            //    **THIS IS WHERE YOUR API CALL WILL GO LATER**
-            setTimeout(() => {
-                const aiMessageDiv = document.createElement('div');
-                aiMessageDiv.classList.add('message', 'ai-message');
-                aiMessageDiv.textContent = "Thank you for your message! This is a placeholder response. To connect me to the real AI, you'll need to set up a server (e.g., using Python/Flask or Node.js).";
-                chatMessages.appendChild(aiMessageDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 1000); // Delay the "response" slightly
+            } catch (error) {
+                console.error('Error contacting server:', error);
+                return `Sorry, I can't connect to the AI server right now. Error: ${error.message}`;
+            }
+        }
+        // ---------------------------------------------
+        
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${sender}-message`);
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+            return messageDiv; // Return the element in case we need to update it
         }
 
-        // Event listeners to send messages
+        async function sendMessage() {
+            if (isSending) return; // Ignore if a message is already being processed
+            
+            const userText = userInput.value.trim();
+            if (userText === "") return;
+
+            // 1. Set state to sending
+            isSending = true;
+            userInput.disabled = true;
+            sendButton.disabled = true;
+
+            // 2. Display the user's message
+            addMessage(userText, 'user');
+            userInput.value = ''; // Clear input
+
+            // 3. Display a loading message
+            const loadingMessageDiv = addMessage('AI is thinking', 'ai');
+            loadingMessageDiv.classList.add('loading');
+            
+            // 4. Get the real AI response
+            const aiResponseText = await sendToBackendAndReceiveResponse(userText);
+            
+            // 5. Update the loading message with the final response
+            loadingMessageDiv.textContent = aiResponseText;
+            loadingMessageDiv.classList.remove('loading');
+
+            // 6. Reset state
+            isSending = false;
+            userInput.disabled = false;
+            sendButton.disabled = false;
+            userInput.focus(); // Put focus back on the input field
+        }
+
+        // Event listeners
         sendButton.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
+        
+        // Initial setup for the input field
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        userInput.focus();
     </script>
 
 </body>
