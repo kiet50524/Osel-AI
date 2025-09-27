@@ -123,7 +123,7 @@
         </div>
         
         <div style="text-align: center; padding: 10px; font-size: 12px; color: #888;">
-            (NOTE: You need to set up a Python server to handle the API key and enable chat.)
+            (Server at http://127.0.0.1:5000)
         </div>
     </div>
 
@@ -135,10 +135,9 @@
 
         // --- Core Function: Connects to the server ---
         async function sendToBackendAndReceiveResponse(message) {
-            // *** NOTE: This is where the API call logic is implemented on the FRONT-END ***
-            // *** It is calling your Python server, NOT the OpenAI API directly! ***
             
-            const serverEndpoint = 'http://127.0.0.1:5000/chat'; // <-- Change this to your server's public URL later
+            // This URL MUST match the address where your Flask server (app.py) is running.
+            const serverEndpoint = 'http://127.0.0.1:5000/chat'; 
 
             try {
                 const response = await fetch(serverEndpoint, {
@@ -161,7 +160,7 @@
 
             } catch (error) {
                 console.error('Error contacting server:', error);
-                return `Sorry, I can't connect to the AI server right now. Error: ${error.message}`;
+                return `Sorry, I can't connect to the AI server right now. Error: ${error.message}. Make sure 'app.py' is running and you entered your API key.`;
             }
         }
         // ---------------------------------------------
